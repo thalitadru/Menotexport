@@ -11,6 +11,13 @@
 Update time: 2016-04-12 22:09:38.
 '''
 
+#-------------------Get @tags inside note text-------------------
+def _getNoteTags(text):
+    tags = list({tag.strip("@").lower() for tag in text.split()
+                  if tag.startswith("@")})
+    for t in tags:
+        text = text.replace(t, u'')
+    return tags, text
 
 #-----------------Extract notes-----------------
 def extractNotes(path,anno,verbose=True):
@@ -18,7 +25,7 @@ def extractNotes(path,anno,verbose=True):
 
     <path>: str, absolute path to a PDF file.
     <anno>: FileAnno obj, contains annotations in PDF.
-    
+
     Return <nttexts>: list, Anno objs containing annotation info from a PDF.
                       Prepare to be exported to txt files.
     '''
@@ -35,10 +42,11 @@ def extractNotes(path,anno,verbose=True):
     for pp in anno.ntpages:
 
         for noteii in notes[pp]:
-            textjj=Anno(noteii['content'], ctime=noteii['cdate'],\
+            notetags, notetext_tagless = _getNoteTags(noteii['content'])
+            textjj=Anno(notetext_tagless, ctime=noteii['cdate'],\
                     title=meta['title'],\
                     page=pp,citationkey=meta['citationkey'], note_author=noteii['author'],\
-                    tags=meta['tags'])
+                    tags=meta['tags']+notetags)
             nttexts.append(textjj)
 
     return nttexts
